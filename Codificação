@@ -1,0 +1,92 @@
+#include <DHT.h>
+#include <SoftwareSerial.h>
+
+#define DHTPIN 7
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+#define Ledvermelha 2
+#define LedAmarela 3
+#define LedVerde 4
+#define BUZZER 8
+
+// pinos conexao serial
+SoftwareSerial bluetooth(10, 11); // RX, TX
+
+// Configuração do sensor de umidade do solo HD-38
+#define Sensorhd38 A0 // Pino analógico para leitura da umidade do solo
+
+// Definindo os valores de umidade do solo
+const int UMIDADE_BAIXA = 40;  // Limite para umidade baixa (menos de 40%)
+const int UMIDADE_ALTA = 60;   // Limite para umidade alta (mais de 60%)
+
+void setup() {
+  Serial.begin(9600);          // Inicializa o monitor serial
+  bluetooth.begin(9600);       // Inicializa a comunicação Bluetooth
+  dht.begin();                 // Inicializa o sensor DHT11
+
+  pinMode(Ledvermelha, OUTPUT);
+  pinMode(LedAmarela, OUTPUT);
+  pinMode(LedVerde, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+}
+
+void loop() {
+  // Leitura dos dados do DHT11 (umidade e temperatura do ambiente)
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+
+  // Verificação leitura do DHT11
+  if (isnan(h) || isnan(t)) {
+    Serial.println("Falha na leitura do sensor DHT");
+    return;
+  }
+
+  // Leitura da umidade do solo (HD-38)
+  int umidadeSolo = analogRead(Sensorhd38);  
+
+  // Mapeando a leitura do sensor HD-38 para um valor entre 0 a 100 (percentual de umidade)
+  int umidadeSoloPercent = map(umidadeSolo, 0, 1023, 0, 100);
+
+  if (umidadeSoloPercent < UMIDADE_BAIXA) {
+    // Umidade do solo abaixo de 40%
+    digitalWrite(Ledvermelha, HIGH);
+    digitalWrite(LedAmarela, LOW);
+    digitalWrite(LedVerde, LOW);
+    digitalWrite(BUZZER, HIGH); // Ativa o buzzer
+    delay(2000);  // Aguardar 2 segundos
+    noTone(BUZZER);  // Desativa o buzzer
+  } 
+  else if (umidadeSoloPercent >= UMIDADE_BAIXA && umidadeSoloPercent <= UMIDADE_ALTA) {
+    // Umidade do solo entre 40% e 60%
+    digitalWrite(Ledvermelha, LOW);
+    digitalWrite(LedAmarela, LOW);
+    digitalWrite(LedVerde, HIGH);
+    digitalWrite(BUZZER, HIGH); // Ativa o buzzer
+    noTone(BUZZER);  // Desativa o buzzer
+  } 
+  else {
+    // Umidade do solo acima de 60%
+    digitalWrite(Ledvermelha, LOW);
+    digitalWrite(LedAmarela, HIGH);
+    digitalWrite(LedVerde, LOW);
+    digitalWrite(BUZZER, HIGH); // Ativa o buzzer
+    noTone(BUZZER);  // Desativa o buzzer
+  }
+
+  //dados no Monitor Serial
+  Serial.print("Temperatura do Ar: ");
+  Serial.print(t);
+  Serial.print("°C, Umidade do Ar: ");
+  Serial.print(h);
+  Serial.print("%, Umidade do Solo: ");
+  Serial.println(umidadeSoloPercent);
+
+  // Criando a string para enviar via Bluetooth com dados de ambiente e solo
+  String dadossoloAmb = "Temp Ar: " + String(t) + "°C, Umid Ar: " + String(h) + "%, Umid Solo: " + String(umidadeSoloPercent) + "%";
+  
+  // Enviar a string pelo Bluetooth
+  bluetooth.println(dadossoloAmb);
+
+  delay(2000); // Delay 
+}
