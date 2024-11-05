@@ -41,6 +41,9 @@ LEDs
 (vermelho, amarelo e verde) conectados aos pinos digitais 2, 3 e 4, respectivamente.
 Buzzer conectado ao pino digital 8.
 Módulo Bluetooth (HC-05 ou similar): Conectado aos pinos 10 (RX) e 11 (TX) para comunicação serial.
+
+
+
 4. Descrição do Algoritmo
 O processo de funcionamento é descrito abaixo:
 
