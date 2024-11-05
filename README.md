@@ -45,6 +45,7 @@ Módulo Bluetooth (HC-05 ou similar): Conectado aos pinos 10 (RX) e 11 (TX) para
 
 
 4. Descrição do Algoritmo
+   
 O processo de funcionamento é descrito abaixo:
 
 Inicialização dos componentes:
